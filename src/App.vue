@@ -125,6 +125,7 @@ export default {
       };
       this.ws.send(JSON.stringify(msg));
       this.msgs.push(msg);
+      this.msg = "";
     },
   },
   created() {
