@@ -1,6 +1,6 @@
 <template>
   <v-app id="inspire">
-    <v-app-bar app clipped-right flat height="72">
+    <v-app-bar app clipped-right flat height="44">
       <v-spacer></v-spacer>
       <v-responsive max-width="56">
         <v-text-field
@@ -56,15 +56,17 @@
     </v-navigation-drawer>
 
     <v-main>
-      <v-list>
+      <v-list v-if="msgs.length > 0">
         <v-list-item
-          v-for="msg in msgs"
-          :key="msg"
+          v-for="(msg,k) in msgs"
+          :key="k"
           link
           style="background-color: rgb(13, 17, 23)"
         >
           <v-list-item-content>
-            <v-list-item-title> {{ msg.Sender +":"+ msg.Content }}</v-list-item-title>
+            <v-list-item-title>
+              {{ msg.Sender + ":" + msg.Content }}</v-list-item-title
+            >
           </v-list-item-content>
         </v-list-item>
       </v-list>
@@ -73,8 +75,11 @@
     <v-footer app color="transparent" height="128" inset>
       <v-text-field
         v-model="msg"
-        :append-outer-icon="msg ? 'mdi-send' : 'mdi-microphone'"
+        clearable
+        :append-outer-icon="msg ? 'mdi-send-circle-outline' : ''"
+        @click:append-outer="sendMessage"
         background-color="grey lighten-1"
+        title="发送消息"
         dense
         flat
         hide-details
@@ -92,6 +97,7 @@ import typ from "./config/message";
 
 export default {
   data: () => ({
+    master:"处理",
     drawer: null,
     wx: null,
     msg: "",
@@ -104,12 +110,21 @@ export default {
       this.ws.send(
         JSON.stringify({
           Type: 1,
-          Content: "处理",
+          Content: this.master,
         })
       );
     },
     sendTextMsg(msg) {
       this.ws.send(msg);
+    },
+    sendMessage() {
+      let msg = {
+        Type: 3,
+        Sender: this.master,
+        Content: this.msg,
+      };
+      this.ws.send(JSON.stringify(msg));
+      this.msgs.push(msg);
     },
   },
   created() {
@@ -134,7 +149,7 @@ export default {
       }
       console.log(data);
       if (data.Type == typ.TextMessage) {
-        that.msgs.push(data)
+        that.msgs.push(data);
         return;
       }
       // ws.close();
